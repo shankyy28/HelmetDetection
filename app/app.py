@@ -5,20 +5,84 @@ from flask import Flask
 from ultralytics import YOLO
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from flask import request, jsonify
+from werkzeug.utils import secure_filename
+import os
+from datetime import datetime
+import logging
+import json
+
+
+from my_helpers import check_request
+
+
+# loading env
+load_dotenv()
+
+
+# configuring logger
+log_file_path = os.getenv('LOG_FILE_PATH')
+
+if not log_file_path:
+    raise AssertionError("log file path not defined in environment")
+
+logging.basicConfig(filename=log_file_path, level=logging.INFO, 
+                    format='%(asctime)s:%(levelname)s:%(message)s')
+
+logger = logging.getLogger(__name__)
+
+# camera_timestamp (iso time), camera_address (string), log_entry (string). 
+
+def log_error(timestamp, address, error_json):
+    try:
+        log_entry = {
+                'camera_timestamp': timestamp,
+                'camera_address': address,
+                'log_entry': json.dumps(error_json)
+            }
+        response = (
+                db_client.table("ErrorLogs")
+                .insert(log_entry)
+                .execute()
+            )
+        if response.error:
+            logger.error(f"Failed to log to Supabase: {response.error.message}")
+    except Exception as e:
+        logger.error(f"Exception occurred while logging to Supabase: {str(e)}")
+        raise e
+
 
 # Linking the database
-load_dotenv()
-url: str = os.getenv("DATABASE_URL")
-key: str = os.getenv("DATABASE_KEY")
-db_client: Client = create_client(url, key)
+url = os.getenv("DATABASE_URL")
+key = os.getenv("DATABASE_KEY")
+
+if not url:
+    raise AssertionError("database URL not defined in environment")
+
+if not key:
+    raise AssertionError("database API key not defined in environment")
+
+db_client = create_client(url, key)
+
+
+
+# Get model paths from environment variables
+helmet_model_path = os.getenv('HELMET_MODEL_PATH')
+bike_model_path = os.getenv('BIKE_MODEL_PATH')
+
+# Check if the environment variables are set
+if not helmet_model_path or not bike_model_path:
+    raise AssertionError("database API key not defined in environment")
+
 
 # Importing the models
-__location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
-helmet = YOLO(os.path.join(__location__, 'last.pt'))
-bike = YOLO(os.path.join(__location__, 'yolov9e.pt'))
+helmet = YOLO(helmet_model_path)
+bike = YOLO(bike_model_path)
 
-# Creating Flask object
+
+
+
+####### Creating Flask object
 app = Flask(__name__)
 
 # Creating APIs
@@ -26,52 +90,110 @@ app = Flask(__name__)
 def index():
     return "Title: Real-time helmet detection \n Date Created: 26-07-2024"
 
-@app.route('/processImage', methods = ['POST', 'GET'])
+
+@app.route('/processImage', methods = ['POST'])
 def processImage():
-    img = cv2.imread("E:/Code/CV/images/bike_1.jpg")
+    outcome = None 
+    # Check if the request has the required fields (as of comment required is time, address, image file)
+    result = check_request(log_error)
+
+    if isinstance(result, tuple):  # This means an error was returned
+        return result
+    
+    # If we get here, all required fields were provided
+    timestamp = result['timestamp']
+    camera_location = result['address']
+    file = result['image']
+    
+    # If the user does not select a file, the browser submits an empty file without a filename
+    if file.filename == '':
+        outcome = jsonify({'error': 'No selected file'}), 400
+        log_error(
+            timestamp=timestamp,
+            address=camera_location,
+            error_json=outcome
+        )
+        return outcome
+    
+    if file:
+        # Secure the filename to prevent malicious input
+        filename = secure_filename(file.filename)
+        # Save the file
+        file.save(os.path.join(app.config['FLASK_UPLOAD_FOLDER'], filename))
+    
+
+    # Process the image, timestamp, and address here
+    img = cv2.imread(file)
 
     # first we call predict on image
-    location_camera = "HOME"
-    time = datetime.now()
-    time_now = time.strftime('%H:%M:%S')
-    date = datetime.date.today()
-    count_tuple = predict(img)
-    count_helmet, count_no_helmet = count_tuple[0], count_tuple[1]
+    predict_result = predict(img)
+    if isinstance(predict_result, tuple):
+        return predict_result
+     
+    count_helmet, count_no_helmet = predict_result['count_helmet'], predict_result['count_no_helmet']
+
 
     # then we commit insights to database
-    flag_insert = storeCount(time_now, location_camera, date, count_helmet, count_no_helmet)
+    flag_insert = storeCount(timestamp, camera_location ,count_helmet, count_no_helmet)
 
-    # perform logging
-    pass
+    # if there was an error during insertion then log the error
+    if flag_insert != "0":
+        outcome = jsonify({'error': 'Some error occured in saving data'}), 500
+        return outcome
 
     # return 200 unless error then 500
     return "DONE"
 
-def predict(img):
-    results_helmet = helmet.predict(img, imgsz = 1500, conf = 0.2)
-    results_bike = bike.predict(img, imgsz = 1280, conf = 0.2)
-    helmets_list = []
-    bikes_list = []
-    for result_bike in results_bike:
-        names = result_bike.names
-        for box in result_bike.boxes:
-            name = names[int(box.cls[0])]
-            if name != 'motorcycle':
-                continue
-            x1, y1, x2, y2 = box.xyxy[0]
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            bikes_list.append((x1, y1, x2, y2))
-    for result_helmet in results_helmet:
-        names = result_helmet.names
-        for box in result_helmet.boxes:
-            x1, y1, x2, y2 = box.xyxy[0]
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            helmets_list.append((x1, y1, x2, y2))
-    count_tuple = count(bikes_list, helmets_list)
-    count_helmet, count_no_helmet = count_tuple[0], count_tuple[1]
-    return (count_helmet, count_no_helmet)
+def predict(img, timestamp, camera_location):
+    try:
+        bikes = []
+        helmets = []
+        results_helmet = helmet.predict(img, imgsz = 1500, conf = 0.2)
+        results_bike = bike.predict(img, imgsz = 1280, conf = 0.2)
+        for result_bike in results_bike:
+            names = result_bike.names
+            for box in result_bike.boxes:
+                name = names[int(box.cls[0])]
+                if name != 'motorcycle':
+                    continue
+                # fetch whatever is need to count
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                cls = int(box.cls[0])
+                name = names[cls]
+                if name != 'motorcycle':
+                    continue
+                
+                bikes.append([x1, y1, x2, y2])
+                # testing
+                count_bike += 1
 
-def count(bikes, helmets_in, expanding_factor = 0.30):
+
+        for result_helmet in results_helmet:
+            names = result_helmet.names
+            for box in result_helmet.boxes:
+                # fetch whatever is need to count
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                cls = int(box.cls[0])
+                name = names[cls]
+                if name == "with helmet":
+                    helmets.append([x1, y1, x2, y2])
+
+        # call count function
+        count_helmet, count_no_helmet = count_helmet(bikes, helmets)
+
+
+        return {
+        'count_helmet': count_helmet,
+        'count_no_helmet': count_no_helmet
+        }
+    except Exception as e:
+        log_error(timestamp, camera_location, str(e))
+        return jsonify({'error': 'Error during model inference'}), 500
+
+
+def count_helmet(bikes, helmets_in, expanding_factor = 0.30):
     """
     Count the number of bikes with and without helmets based on their bounding boxes.
 
@@ -118,7 +240,10 @@ def count(bikes, helmets_in, expanding_factor = 0.30):
     >>> helmets = [(120, 50, 180, 90), (320, 250, 380, 290)]
     >>> count_helmet(bikes, helmets)
     (2, 0)
-    """ 
+    """
+
+    # Function implementation goes here
+    count_helmet, count_no_helmet = 0, 0 
     # the logic is to find a helmet that is directly above the bike, within bike_height of the top of the bike
     # essentially, if a helmet is found in an area that is the same as the bike_box, but on top of it, then we do + helmet count. 
     # else + no_helmet count
@@ -127,8 +252,6 @@ def count(bikes, helmets_in, expanding_factor = 0.30):
     # And to consider the cases in which helmets may be "partially" in the area, the "allowable" area has been made flexible by an input "expanding_factor"
 
     helmets = helmets_in.copy()
-    count_helmet = 0
-    count_no_helmet = 0
     for bike in bikes:
         f = False
         for helmet in helmets:
@@ -169,14 +292,20 @@ def count(bikes, helmets_in, expanding_factor = 0.30):
 
     return (count_helmet, count_no_helmet)
 
-def storeCount(time_now, location_camera, date, count_helmet, count_no_helmet):
-    response = (
-        db_client.table("HelmetDetection")
-        .insert({"time": time_now, "location":  location_camera, "date": date, "count_helmet": count_helmet, "count_no_helmet": count_no_helmet})
-        .execute()
-    )
-    print(response)
-    return "0"
+def storeCount(timestamp, camera_location, count_helmet, count_no_helmet):
+    try:
+        response = (
+            db_client.table("HelmetDetection")
+            .insert({"time": timestamp, "location": camera_location, "count_helmet": count_helmet, "count_no_helmet": count_no_helmet})
+            .execute()
+        )
+        if response.error:
+            log_error(timestamp, camera_location, response.error)
+            return response.error.message
+        return "0"
+    except Exception as e:
+        log_error(timestamp, camera_location, str(e))
+        return str(e)
 
 def display():
     print("Printing table")
@@ -185,4 +314,4 @@ def display():
 
 # Running the app
 if __name__ == "__main__":
-    #app.run(debug = True
+    app.run(debug = True)

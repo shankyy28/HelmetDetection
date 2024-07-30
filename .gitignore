@@ -1,2 +1,7 @@
+# ignore all model files
 *.pt
+
+# ignore all misc stuff
+*.vscode
 .env
+
