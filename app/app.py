@@ -86,6 +86,15 @@ bike = YOLO(bike_model_path)
 ####### Creating Flask object
 app = Flask(__name__)
 
+flask_image_path = os.getenv('FLASK_UPLOAD_FOLDER')
+
+if not flask_image_path:
+    raise AssertionError("Flask image path is not defined in environment")
+
+app.config['FLASK_UPLOAD_FOLDER'] = flask_image_path
+
+
+
 # Creating APIs
 @app.route('/')
 def index():
@@ -96,7 +105,7 @@ def index():
 def processImage():
     outcome = None 
     # Check if the request has the required fields (as of comment required is time, address, image file)
-    result = check_request(log_error)
+    result = check_request(log_error, db_client, request.form, request.files)
 
     if isinstance(result, tuple):  # This means an error was returned
         return result
@@ -126,10 +135,10 @@ def processImage():
     
 
     # Process the image, timestamp, and address here
-    img = cv2.imread(file)
+    img = cv2.imread(os.path.join(app.config['FLASK_UPLOAD_FOLDER'], filename))
 
     # first we call predict on image
-    predict_result = predict(img)
+    predict_result = predict(img, timestamp, camera_location)
     if isinstance(predict_result, tuple):
         return predict_result
      
@@ -145,7 +154,7 @@ def processImage():
         return outcome
 
     # return 200 unless error then 500
-    return "DONE"
+    return jsonify({"message": "success"}), 200
 
 def predict(img, timestamp, camera_location):
     try:
@@ -153,6 +162,38 @@ def predict(img, timestamp, camera_location):
         helmets = []
         results_helmet = helmet.predict(img, imgsz = 1500, conf = 0.2)
         results_bike = bike.predict(img, imgsz = 1280, conf = 0.2)
+        
+        for result_helmet in results_helmet:
+            names = result_helmet.names
+            for box in result_helmet.boxes:
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                cls = int(box.cls[0])
+                name = names[cls]
+                # if name == "with helmet":
+                #     #bbox[name].append([x1, y1, x2, y2])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                cv2.putText(frame, f'{name}{box.conf[0]:.2f}', (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
+        for result_bike in results_bike:
+            names = result_bike.names
+            for box in result_bike.boxes:
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                cls = int(box.cls[0])
+                name = names[cls]
+                if name != 'motorcycle':
+                    continue
+                # #bbox[name].append([x1, y1, x2, y2])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                cv2.putText(frame, f'{name}{box.conf[0]:.2f}', (x1, y1), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 1)
+        #both, only_bike = count(bbox)
+        #print("Both bike and helmet: ", both,"No helmet: ", only_bike)
+        frame = cv2.resize(frame, (1920,1000))
+        cv2.imshow("Image_test", frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
         for result_bike in results_bike:
             names = result_bike.names
             for box in result_bike.boxes:
@@ -165,11 +206,9 @@ def predict(img, timestamp, camera_location):
                 cls = int(box.cls[0])
                 name = names[cls]
                 if name != 'motorcycle':
-                    continue
-                
+                    continue  
+
                 bikes.append([x1, y1, x2, y2])
-                # testing
-                count_bike += 1
 
 
         for result_helmet in results_helmet:
@@ -184,7 +223,7 @@ def predict(img, timestamp, camera_location):
                     helmets.append([x1, y1, x2, y2])
 
         # call count function
-        count_helmet, count_no_helmet = count_helmet(bikes, helmets)
+        count_helmet, count_no_helmet = count_helmets(bikes, helmets)
 
 
         return {
@@ -195,7 +234,7 @@ def predict(img, timestamp, camera_location):
         outcome = jsonify({'error': str(e)}), 500
         log_error(
             timestamp=timestamp, 
-            camera_location=camera_location, 
+            address=camera_location, 
             error_json= outcome,
             severity=3,
             db_client=db_client
@@ -203,7 +242,7 @@ def predict(img, timestamp, camera_location):
         return jsonify({'error': 'Error during model inference'}), 500
 
 
-def count_helmet(bikes, helmets_in, expanding_factor = 0.30):
+def count_helmets(bikes, helmets_in, expanding_factor = 0.30):
     """
     Count the number of bikes with and without helmets based on their bounding boxes.
 
@@ -305,27 +344,35 @@ def count_helmet(bikes, helmets_in, expanding_factor = 0.30):
 def storeCount(timestamp, camera_location, count_helmet, count_no_helmet):
     try:
         response = (
-            db_client.table("HelmetDetection")
+            db_client.table("HelmetDetectionTable")
             .insert({"time": timestamp, "location": camera_location, "count_helmet": count_helmet, "count_no_helmet": count_no_helmet})
             .execute()
         )
         if response.error:
+            outcome = jsonify({'error': str(response.error)}), 500
             log_error(
                 timestamp=timestamp, 
-                camera_location=camera_location, 
+                address=camera_location, 
                 error_json= outcome,
                 severity=3,
                 db_client=db_client
             )
-            return response.error.message
+            return outcome
         return "0"
     except Exception as e:
-        log_error(timestamp, camera_location, str(e))
-        return str(e)
+        outcome = jsonify({'error': str(e)}), 500
+        log_error(
+            timestamp=timestamp, 
+            address=camera_location, 
+            error_json= outcome,
+            severity=3,
+            db_client=db_client
+        )
+        return outcome
 
 def display():
     print("Printing table")
-    response = db_client.table("HelmetDetection").select("*").execute()
+    response = db_client.table("HelmetDetectionTable").select("*").execute()
     return response
 
 # Running the app
