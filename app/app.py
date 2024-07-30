@@ -31,17 +31,18 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO,
 
 logger = logging.getLogger(__name__)
 
-# camera_timestamp (iso time), camera_address (string), log_entry (string). 
+# camera_timestamp (iso time), camera_address (string), log_entry (string), severity 
 
-def log_error(timestamp, address, error_json):
+def log_error(timestamp, address, error_json, severity, db_client):
     try:
         log_entry = {
                 'camera_timestamp': timestamp,
                 'camera_address': address,
-                'log_entry': json.dumps(error_json)
+                'log_entry': json.dumps(error_json),
+                'severity': severity
             }
         response = (
-                db_client.table("ErrorLogs")
+                db_client.table("logging")
                 .insert(log_entry)
                 .execute()
             )
@@ -111,7 +112,9 @@ def processImage():
         log_error(
             timestamp=timestamp,
             address=camera_location,
-            error_json=outcome
+            error_json=outcome,
+            severity=3,
+            db_client=db_client
         )
         return outcome
     
@@ -189,7 +192,14 @@ def predict(img, timestamp, camera_location):
         'count_no_helmet': count_no_helmet
         }
     except Exception as e:
-        log_error(timestamp, camera_location, str(e))
+        outcome = jsonify({'error': str(e)}), 500
+        log_error(
+            timestamp=timestamp, 
+            camera_location=camera_location, 
+            error_json= outcome,
+            severity=3,
+            db_client=db_client
+        )
         return jsonify({'error': 'Error during model inference'}), 500
 
 
@@ -300,7 +310,13 @@ def storeCount(timestamp, camera_location, count_helmet, count_no_helmet):
             .execute()
         )
         if response.error:
-            log_error(timestamp, camera_location, response.error)
+            log_error(
+                timestamp=timestamp, 
+                camera_location=camera_location, 
+                error_json= outcome,
+                severity=3,
+                db_client=db_client
+            )
             return response.error.message
         return "0"
     except Exception as e:
