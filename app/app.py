@@ -23,6 +23,8 @@ load_dotenv()
 # configuring logger
 log_file_path = os.getenv('LOG_FILE_PATH')
 
+
+
 if not log_file_path:
     raise AssertionError("log file path not defined in environment")
 
@@ -377,4 +379,7 @@ def display():
 
 # Running the app
 if __name__ == "__main__":
-    app.run(debug = True)
+    app = Flask('app')
+    print(db_client)
+    print(log_file_path)
+    app.run(debug = True, port = 5001)

@@ -4,3 +4,66 @@
 2024-07-30 09:48:46,512:INFO: * Restarting with watchdog (windowsapi)
 2024-07-30 09:48:50,704:WARNING: * Debugger is active!
 2024-07-30 09:48:50,707:INFO: * Debugger PIN: 119-967-604
+2024-07-30 09:50:38,906:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-07-30 09:50:38,906:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 09:50:38,918:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 09:50:44,042:WARNING: * Debugger is active!
+2024-07-30 09:50:44,045:INFO: * Debugger PIN: 119-967-604
+2024-07-30 09:52:19,476:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 09:52:19,477:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 09:52:19,477:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 09:52:19,478:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 09:52:20,444:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 09:52:29,008:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-07-30 09:52:29,008:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 09:52:29,020:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 09:52:33,440:WARNING: * Debugger is active!
+2024-07-30 09:52:33,443:INFO: * Debugger PIN: 119-967-604
+2024-07-30 09:59:26,950:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-07-30 09:59:26,950:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 09:59:26,961:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 09:59:30,844:WARNING: * Debugger is active!
+2024-07-30 09:59:30,847:INFO: * Debugger PIN: 119-967-604
+2024-07-30 10:00:36,094:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2024-07-30 10:00:36,094:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:00:36,102:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 10:00:40,148:WARNING: * Debugger is active!
+2024-07-30 10:00:40,150:INFO: * Debugger PIN: 119-967-604
+2024-07-30 10:01:10,411:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:01:10,412:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:01:10,412:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:01:11,609:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 10:01:16,434:WARNING: * Debugger is active!
+2024-07-30 10:01:16,437:INFO: * Debugger PIN: 119-967-604
+2024-07-30 10:02:05,591:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.9:3000
+2024-07-30 10:02:05,591:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:02:05,600:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 10:02:09,538:WARNING: * Debugger is active!
+2024-07-30 10:02:09,541:INFO: * Debugger PIN: 119-967-604
+2024-07-30 10:02:35,027:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:02:35,028:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:02:35,029:INFO: * Detected change in 'e:\\Code\\CV\\Helmet\\app\\app.py', reloading
+2024-07-30 10:02:35,944:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 10:02:51,695:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.9:3000
+2024-07-30 10:02:51,696:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:04:15,802:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.9:3000
+2024-07-30 10:04:15,802:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:08:53,470:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.9:3000
+2024-07-30 10:08:53,470:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:09:59,956:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.9:3000
+2024-07-30 10:09:59,957:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:11:25,724:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2024-07-30 10:11:25,724:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:11:25,735:INFO: * Restarting with watchdog (windowsapi)
+2024-07-30 10:11:30,003:WARNING: * Debugger is active!
+2024-07-30 10:11:30,007:INFO: * Debugger PIN: 119-967-604
