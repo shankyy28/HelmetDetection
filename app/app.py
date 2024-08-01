@@ -79,8 +79,8 @@ if not helmet_model_path or not bike_model_path:
 
 
 # Importing the models
-helmet = YOLO(helmet_model_path)
-bike = YOLO(bike_model_path)
+# helmet = YOLO(helmet_model_path)
+# bike = YOLO(bike_model_path)
 
 
 
@@ -379,7 +379,4 @@ def display():
 
 # Running the app
 if __name__ == "__main__":
-    app = Flask('app')
-    print(db_client)
-    print(log_file_path)
     app.run(debug = True, port = 5001)

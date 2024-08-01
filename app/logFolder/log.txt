@@ -67,3 +67,28 @@
 2024-07-30 10:11:25,735:INFO: * Restarting with watchdog (windowsapi)
 2024-07-30 10:11:30,003:WARNING: * Debugger is active!
 2024-07-30 10:11:30,007:INFO: * Debugger PIN: 119-967-604
+2024-07-30 10:15:37,042:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2024-07-30 10:15:37,042:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 10:15:37,046:INFO: * Restarting with stat
+2024-07-30 10:15:44,244:WARNING: * Debugger is active!
+2024-07-30 10:15:44,270:INFO: * Debugger PIN: 755-274-895
+2024-07-30 12:08:31,726:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2024-07-30 12:08:31,726:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 12:08:31,728:INFO: * Restarting with stat
+2024-07-30 12:08:37,549:WARNING: * Debugger is active!
+2024-07-30 12:08:37,572:INFO: * Debugger PIN: 755-274-895
+2024-07-30 12:08:50,610:INFO:127.0.0.1 - - [30/Jul/2024 12:08:50] "[33mGET / HTTP/1.1[0m" 404 -
+2024-07-30 12:08:50,738:INFO:127.0.0.1 - - [30/Jul/2024 12:08:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-07-30 12:08:53,792:INFO:127.0.0.1 - - [30/Jul/2024 12:08:53] "[33mGET / HTTP/1.1[0m" 404 -
+2024-07-30 12:11:03,195:INFO:127.0.0.1 - - [30/Jul/2024 12:11:03] "[33mGET / HTTP/1.1[0m" 404 -
+2024-07-30 12:27:49,076:INFO: * Detected change in 'D:\\Me\\UPES\\Sem 6\\internship\\IBM\\HelmetDetection\\app\\app.py', reloading
+2024-07-30 12:27:49,635:INFO: * Restarting with stat
+2024-07-30 12:27:57,952:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+2024-07-30 12:27:57,952:INFO:[33mPress CTRL+C to quit[0m
+2024-07-30 12:27:57,954:INFO: * Restarting with stat
+2024-07-30 12:28:03,677:WARNING: * Debugger is active!
+2024-07-30 12:28:03,701:INFO: * Debugger PIN: 755-274-895
+2024-07-30 12:28:14,358:INFO:127.0.0.1 - - [30/Jul/2024 12:28:14] "GET / HTTP/1.1" 200 -
