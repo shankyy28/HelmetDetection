@@ -79,8 +79,8 @@ if not helmet_model_path or not bike_model_path:
 
 
 # Importing the models
-# helmet = YOLO(helmet_model_path)
-# bike = YOLO(bike_model_path)
+helmet = YOLO(helmet_model_path)
+bike = YOLO(bike_model_path)
 
 
 
@@ -371,6 +371,7 @@ def storeCount(timestamp, camera_location, count_helmet, count_no_helmet):
             db_client=db_client
         )
         return outcome
+
 
 def display():
     print("Printing table")
